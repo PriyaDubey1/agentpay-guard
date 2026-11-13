@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
-from app.api import payments
+from app.api import demo, payments
 from app.db import SessionLocal, init_db
 from app.seed import ensure_demo_agent
 
@@ -26,6 +26,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.include_router(payments.router)
+app.include_router(demo.router)
 
 
 @app.get("/health")
