@@ -1,8 +1,14 @@
 # AgentPay Guard
 
+[![CI](https://github.com/PriyaDubey1/agentpay-guard/actions/workflows/ci.yml/badge.svg)](https://github.com/PriyaDubey1/agentpay-guard/actions/workflows/ci.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+
 > Let AI agents spend money through PayPal without ever holding the keys: budgets, risk checks and human approval enforced on every payment.
 
 Built for the **PayPal AI Hackathon 2026**. Runs entirely on the **PayPal Sandbox**.
+
+<!-- After saving a screenshot to docs/dashboard.png, uncomment: -->
+<!-- ![Dashboard](docs/dashboard.png) -->
+<!-- Live demo: https://YOUR-APP.onrender.com  |  Demo video: https://youtu.be/YOUR-VIDEO -->
 
 ## The problem
 AI agents are starting to make purchases for people, but nobody wants to hand an agent an open wallet. An agent can be tricked by a poisoned web page (prompt injection), retry and double-charge, or be talked into overspending.
@@ -45,13 +51,16 @@ uvicorn app.main:app --reload
 ```
 Open http://127.0.0.1:8000 for the dashboard (admin key = `ADMIN_KEY`, default `admin-demo-key`).
 
-In a second terminal, run the demo agent:
+Click **Run demo scenarios** in the dashboard to see the Guard in action, or **Propose a payment** to try your own (for example, paste a hidden instruction into the page-text box). To drive it from a terminal as an agent would, run:
 ```bash
 python -m demo_agent.agent
 ```
 It proposes five payments: one small and legitimate, one that needs approval, and three attacks. For payments that reach PayPal, open the printed link, log in with a **US sandbox personal account**, and click **Complete Purchase**. The dashboard detects the approval and captures the payment automatically.
 
 The demo agent's API key is `demo-agent-key` (created automatically on first start; demo only).
+
+## Deploy (Render, free tier)
+Create a Render **Blueprint** from this repo (it reads `render.yaml`), enter your sandbox `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET`, and set `PYTHON_VERSION=3.12.3`. The free tier sleeps after inactivity and resets SQLite on restart, which is fine for a demo. Set `ADMIN_KEY` to something private unless you want visitors to use the demo buttons.
 
 ## Tests and attack results
 ```bash

@@ -3,7 +3,7 @@ line-length = 130
 
 [tool.ruff.lint]
 select = ["E", "F"]
-ignore = ["E731"]
+ignore = ["E731", "E501"]
 
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning"]

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentPay Guard</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AgentPay Guard</title><meta name="description" content="A policy-enforced payment gateway for AI agents, built on PayPal."><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%9B%A1%3C/text%3E%3C/svg%3E">
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--text:#14181f;--mut:#667085;--line:#e3e6ea;--acc:#0b5fff;--onacc:#fff;--ok:#067647;--okb:#dcfae6;--warn:#93370d;--warnb:#fef0c7;--bad:#b42318;--badb:#fee4e2;--info:#175cd3;--infob:#d1e9ff}
 @media(prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#171b23;--text:#e9edf3;--mut:#9aa4b2;--line:#2a303b;--acc:#6ea0ff;--onacc:#06122b;--ok:#75e0a7;--okb:#0b3a26;--warn:#fec84b;--warnb:#3b2a08;--bad:#fda29b;--badb:#3d1512;--info:#84caff;--infob:#0e2a4a}}
@@ -28,7 +28,7 @@ dialog{width:min(700px,94vw);border:1px solid var(--line);border-radius:14px;bac
 </style></head><body>
 <header><h1>AgentPay Guard</h1><span class="tag">PayPal Sandbox</span><span class="sp"></span>
 <button class="p" id="run">&#9654; Run demo scenarios</button><button id="tog">+ Propose a payment</button><button class="d" id="reset">Reset</button>
-<input id="key" type="password" value="admin-demo-key" style="width:130px" title="Admin key" aria-label="Admin key"></header>
+<label class="mut" style="display:flex;gap:6px;align-items:center" title="Needed for approvals and the demo buttons">Admin key <input id="key" type="password" value="admin-demo-key" style="width:130px" aria-label="Admin key"></label></header>
 <main>
 <div id="how" class="how"><div><b><span class="num">1</span>Agent proposes</b><span class="mut">It never holds PayPal keys.</span></div><div><b><span class="num">2</span>Guard checks</b><span class="mut">Limits, budget, allowlist, injection.</span></div><div><b><span class="num">3</span>You approve</b><span class="mut">Risky payments wait for you.</span></div><div><b><span class="num">4</span>PayPal pays</b><span class="mut">Captured after buyer approval.</span></div></div>
 <div id="form" class="card form"><form id="f"><div class="fg">
@@ -42,7 +42,7 @@ dialog{width:min(700px,94vw);border:1px solid var(--line);border-radius:14px;bac
 <h2>Agent &amp; budget</h2><div id="stats" class="grid"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
 <h2>Needs your approval <span id="pn" class="mut"></span></h2><div id="pend"></div>
 <h2>Payments</h2><div class="tabs" id="tabs"></div><div id="tbl"><div class="sk"></div></div>
-</main>
+<p class="mut" style="margin-top:36px">Built for the PayPal AI Hackathon 2026 · PayPal Sandbox only, no real money · <a href="https://github.com/PriyaDubey1/agentpay-guard" target="_blank" rel="noopener">Source on GitHub</a></p></main>
 <dialog id="dlg"><div id="db"></div><p style="text-align:right;margin:10px 0 0"><button id="cl">Close</button></p></dialog><div id="toasts"></div>
 <script>
 const $=i=>document.getElementById(i),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
