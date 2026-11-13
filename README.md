@@ -7,7 +7,7 @@
 Built for the **PayPal AI Hackathon 2026**. Runs entirely on the **PayPal Sandbox**.
 
 <!-- After saving a screenshot to docs/dashboard.png, uncomment: -->
-<!-- ![Dashboard](docs/dashboard.png) -->
+![Dashboard](docs/dashboard.png)
 <!-- Live demo: https://YOUR-APP.onrender.com  |  Demo video: https://youtu.be/YOUR-VIDEO -->
 
 ## The problem
