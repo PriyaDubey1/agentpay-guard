@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./agentpay.db"
     llm_api_key: str = ""
     llm_model: str = ""
+    admin_key: str = "admin-demo-key"
     app_env: str = "development"
 
 

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentPay Guard</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#14181f; --muted:#667085; --line:#e3e6ea; --accent:#0b5fff;
+          --ok:#067647; --okbg:#dcfae6; --warn:#93370d; --warnbg:#fef0c7; --bad:#b42318; --badbg:#fee4e2; --info:#175cd3; --infobg:#d1e9ff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1218; --card:#171b23; --text:#e9edf3; --muted:#9aa4b2; --line:#2a303b; --accent:#6ea0ff;
+            --ok:#75e0a7; --okbg:#0b3a26; --warn:#fec84b; --warnbg:#3b2a08; --bad:#fda29b; --badbg:#3d1512; --info:#84caff; --infobg:#0e2a4a; }
+  }
+  * { box-sizing: border-box; } a { color: var(--accent); }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; padding:14px 24px; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { font-size:18px; margin:0; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--infobg); color:var(--info); }
+  header .sp { flex:1; }
+  header label { font-size:13px; color:var(--muted); display:flex; gap:6px; align-items:center; }
+  input { padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--text); width:150px; }
+  button { padding:6px 12px; border-radius:6px; border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer; font-size:13px; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.danger { color:var(--bad); }
+  main { max-width:1100px; margin:0 auto; padding:20px 24px 60px; }
+  h2 { font-size:15px; margin:28px 0 10px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .card h3 { margin:0 0 4px; font-size:15px; }
+  .muted { color:var(--muted); font-size:13px; }
+  .bar { height:8px; background:var(--line); border-radius:99px; overflow:hidden; margin:8px 0 4px; }
+  .bar > div { height:100%; background:var(--accent); }
+  .pending { display:grid; gap:10px; }
+  .pcard { display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:center; background:var(--card); border:1px solid var(--warn); border-radius:10px; padding:12px 16px; }
+  .pcard .amt { font-size:20px; font-weight:600; }
+  .reasons { margin:4px 0 0; padding-left:18px; color:var(--muted); font-size:13px; }
+  table { width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  tr:last-child td { border-bottom:0; }
+  tr.row { cursor:pointer; } tr.row:hover { background:var(--bg); }
+  .badge { font-size:12px; padding:2px 8px; border-radius:99px; white-space:nowrap; }
+  .APPROVED,.CAPTURED { background:var(--okbg); color:var(--ok); }
+  .PENDING_APPROVAL { background:var(--warnbg); color:var(--warn); }
+  .DENIED,.REJECTED,.FAILED { background:var(--badbg); color:var(--bad); }
+  .ORDER_CREATED,.PROPOSED { background:var(--infobg); color:var(--info); }
+  .empty { padding:22px; text-align:center; color:var(--muted); background:var(--card); border:1px dashed var(--line); border-radius:10px; }
+  dialog { width:min(680px,92vw); border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--text); padding:20px; }
+  dialog::backdrop { background:rgba(0,0,0,.45); }
+  .ev { border-left:2px solid var(--line); padding:2px 0 10px 12px; margin-left:4px; font-size:13px; }
+  .ev b { font-weight:600; }
+  pre { white-space:pre-wrap; word-break:break-word; background:var(--bg); padding:8px; border-radius:6px; font-size:12px; margin:4px 0 0; }
+  #err { color:var(--bad); font-size:13px; padding:6px 24px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>AgentPay Guard</h1><span class="tag">PayPal Sandbox</span>
+  <span class="sp"></span>
+  <label>Admin key <input id="key" type="password" value="admin-demo-key" autocomplete="off"></label>
+  <button id="refresh">Refresh</button>
+</header>
+<div id="err"></div>
+<main>
+  <h2>Agents &amp; budgets</h2>
+  <div id="agents" class="cards"></div>
+
+  <h2>Needs your approval <span id="pcount" class="muted"></span></h2>
+  <div id="pending" class="pending"></div>
+
+  <h2>All payments</h2>
+  <div id="table"></div>
+</main>
+
+<dialog id="detail">
+  <div id="detailBody"></div>
+  <p style="text-align:right;margin:12px 0 0"><button id="closeDetail">Close</button></p>
+</dialog>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { "X-Admin-Key": $("key").value, "Content-Type": "application/json" } });
+  if (!res.ok) {
+    let msg = res.status === 401 ? "Wrong admin key" : "Request failed (" + res.status + ")";
+    try { const j = await res.json(); if (j.detail && typeof j.detail === "string") msg = j.detail; } catch (_) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+function badge(state) { return `<span class="badge ${esc(state)}">${esc(state.replace("_"," "))}</span>`; }
+
+function renderAgents(agents) {
+  $("agents").innerHTML = agents.map(a => {
+    const pct = Math.min(100, Math.round(100 * a.spent_today / a.daily_budget));
+    return `<div class="card"><h3>${esc(a.name)} <span class="badge ${a.status === "active" ? "APPROVED" : "DENIED"}">${esc(a.status)}</span></h3>
+      <div class="muted">Spent today: $${esc(a.spent_today)} of $${esc(a.daily_budget)}</div>
+      <div class="bar"><div style="width:${pct}%"></div></div>
+      <div class="muted">Max per payment $${esc(a.max_per_txn)} &middot; auto-approve up to $${esc(a.auto_approve_below)}</div>
+      <div class="muted">Merchants: ${esc((a.allowed_merchants || ["any"]).join(", "))}</div></div>`;
+  }).join("") || `<div class="empty">No agents yet</div>`;
+}
+
+function renderPending(rows) {
+  const p = rows.filter(r => r.state === "PENDING_APPROVAL");
+  $("pcount").textContent = p.length ? "(" + p.length + ")" : "";
+  $("pending").innerHTML = p.map(r => `
+    <div class="pcard">
+      <div style="flex:1;min-width:240px">
+        <div><span class="amt">$${esc(r.amount)}</span> to <b>${esc(r.merchant)}</b></div>
+        <div class="muted">Agent says: ${esc(r.purpose)}</div>
+        <div class="muted">User asked for: ${esc(r.user_goal || "(not provided)")}</div>
+        <ul class="reasons">${r.reasons.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+      </div>
+      <div><button class="primary" onclick="decide('${esc(r.id)}','approve')">Approve</button>
+           <button class="danger" onclick="decide('${esc(r.id)}','reject')">Reject</button></div>
+    </div>`).join("") || `<div class="empty">Nothing waiting. Risky or large payments will appear here.</div>`;
+}
+
+function renderTable(rows) {
+  if (!rows.length) { $("table").innerHTML = `<div class="empty">No payments yet. Run <code>python -m demo_agent.agent</code> to generate some.</div>`; return; }
+  $("table").innerHTML = `<table><thead><tr><th>Time</th><th>Merchant</th><th>Amount</th><th>Status</th><th>Why</th><th></th></tr></thead><tbody>` +
+    rows.map(r => `<tr class="row" onclick="showDetail('${esc(r.id)}')">
+      <td class="muted">${esc(new Date(r.created_at + "Z").toLocaleTimeString())}</td>
+      <td>${esc(r.merchant)}</td><td>$${esc(r.amount)}</td><td>${badge(r.state)}</td>
+      <td class="muted">${esc((r.reasons || [])[0] || "")}</td>
+      <td>${r.state === "ORDER_CREATED" && r.approval_url ? `<a href="${esc(r.approval_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Pay in PayPal</a>` : ""}</td></tr>`).join("") +
+    `</tbody></table>`;
+}
+
+async function load() {
+  try {
+    $("err").textContent = "";
+    await api("/v1/payments/sync-all", { method: "POST" });     // capture anything the buyer approved
+    const [agents, rows] = await Promise.all([api("/v1/agents"), api("/v1/payments")]);
+    renderAgents(agents); renderPending(rows); renderTable(rows);
+  } catch (e) { $("err").textContent = e.message; }
+}
+
+async function decide(id, decision) {
+  try { await api(`/v1/payments/${id}/decision`, { method: "POST", body: JSON.stringify({ decision }) }); }
+  catch (e) { $("err").textContent = e.message; }
+  load();
+}
+
+async function showDetail(id) {
+  const p = await api("/v1/payments/" + id);
+  $("detailBody").innerHTML = `<h3 style="margin:0 0 6px">$${esc(p.amount)} to ${esc(p.merchant)} ${badge(p.state)}</h3>
+    <div class="muted">${esc(p.purpose)}</div>
+    <div class="muted">PayPal order: ${esc(p.paypal_order_id || "-")} &middot; capture: ${esc(p.paypal_capture_id || "-")}</div>
+    ${p.error ? `<div style="color:var(--bad)">Error: ${esc(p.error)}</div>` : ""}
+    <h3 style="margin:16px 0 8px;font-size:14px">Audit trail</h3>` +
+    (p.events || []).map(e => `<div class="ev"><b>${esc(e.event_type)}</b> by ${esc(e.actor)}
+      ${e.to_state ? ` &rarr; ${esc(e.to_state)}` : ""} <span class="muted">${esc(new Date(e.created_at + "Z").toLocaleTimeString())}</span>
+      ${e.details ? `<pre>${esc(JSON.stringify(e.details, null, 2))}</pre>` : ""}</div>`).join("");
+  $("detail").showModal();
+}
+
+$("refresh").onclick = load;
+$("closeDetail").onclick = () => $("detail").close();
+load(); setInterval(load, 5000);
+</script>
+</body>
+</html>
